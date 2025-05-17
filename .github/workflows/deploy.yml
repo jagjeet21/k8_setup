@@ -1,5 +1,5 @@
 name: Deploy to K3s Cluster
-#
+
 on:
   push:
     branches:
@@ -19,8 +19,21 @@ jobs:
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 --decode > $HOME/.kube/config
         chmod 600 $HOME/.kube/config
 
-    - name: Verify kubectl config
-      run: kubectl config view
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+    - name: Build and push backend image
+      run: |
+        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/backend-app:latest ./backend
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/backend-app:latest
+
+    - name: Build and push frontend image
+      run: |
+        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/frontend-app:latest ./frontend
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/frontend-app:latest
+
+    - name: Deploy to Kubernetes
+      run: kubectl apply -f ./k8s
 
     - name: Check cluster pods
       run: kubectl get pods --all-namespaces
