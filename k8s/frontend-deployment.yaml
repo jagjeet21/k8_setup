@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: rajputjagjeet/frontend:latest
+        image: rajputjagjeet/frontend-app:latest
         ports:
         - containerPort: 3000
         env:
