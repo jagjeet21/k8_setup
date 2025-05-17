@@ -3,25 +3,29 @@ name: Deploy to K3s
 on:
   push:
     branches:
-      - main  # your branch
+      - main  # or your deployment branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Set up KUBECONFIG
+    - name: Set up Kubeconfig
       run: |
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 --decode > $HOME/.kube/config
-      env:
-        KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        chmod 600 $HOME/.kube/config
 
-    - name: Apply Kubernetes manifests
-      run: |
-        kubectl apply -f backend-deployment.yaml
-        kubectl apply -f backend-service.yaml
-        kubectl apply -f frontend-deployment.yaml
-        kubectl apply -f frontend-service.yaml
+    - name: Verify kubectl config
+      run: kubectl cluster-info
+
+    - name: Deploy backend
+      run: kubectl apply -f k8s/backend-deployment.yaml
+
+    - name: Deploy frontend
+      run: kubectl apply -f k8s/frontend-deployment.yaml
+
+    - name: Deploy services
+      run: kubectl apply -f k8s/services.yaml
