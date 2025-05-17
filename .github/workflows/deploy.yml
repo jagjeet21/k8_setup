@@ -1,31 +1,26 @@
-name: Deploy to K3s
+name: Deploy to K3s Cluster
 
 on:
   push:
     branches:
-      - main  # or your deployment branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up Kubeconfig
       run: |
+        mkdir -p $HOME/.kube
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 --decode > $HOME/.kube/config
         chmod 600 $HOME/.kube/config
 
     - name: Verify kubectl config
-      run: kubectl cluster-info
+      run: kubectl config view
 
-    - name: Deploy backend
-      run: kubectl apply -f k8s/backend-deployment.yaml
-
-    - name: Deploy frontend
-      run: kubectl apply -f k8s/frontend-deployment.yaml
-
-    - name: Deploy services
-      run: kubectl apply -f k8s/services.yaml
+    - name: Check cluster pods
+      run: kubectl get pods --all-namespaces
