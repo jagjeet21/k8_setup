@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Set up Kubeconfig
@@ -32,8 +32,23 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest ./frontend
         docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
 
-    - name: Deploy to Kubernetes
-      run: kubectl apply -f ./k8s
+    - name: Deploy Postgres
+      run: kubectl apply -f ./k8s/postgres.yaml
 
-    - name: Check cluster pods
+    - name: Create DB credentials secret
+      run: |
+        kubectl delete secret db-credentials --ignore-not-found
+        kubectl create secret generic db-credentials \
+          --from-literal=POSTGRES_HOST=postgres-service \
+          --from-literal=POSTGRES_USER=myuser \
+          --from-literal=POSTGRES_PASSWORD=mypassword \
+          --from-literal=POSTGRES_DB_NAME=employees_db \
+          --from-literal=POSTGRES_PORT=5432
+
+    - name: Deploy backend and frontend
+      run: |
+        kubectl apply -f ./k8s/backend-deployment.yaml
+        kubectl apply -f ./k8s/frontend-deployment.yaml
+
+    - name: Check all pods
       run: kubectl get pods --all-namespaces
