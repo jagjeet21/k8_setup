@@ -1,24 +1,23 @@
-name: Deploy to Kubernetes
+name: Deploy Frontend Service Only
 
 on:
   push:
-    paths:
-      - k8s/**   # Only trigger when files in k8s folder change
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3   # or any setup kubectl action
+    - name: Set up Kubeconfig
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBECONFIG_B64 }}" | base64 --decode > $HOME/.kube/config
+        chmod 600 $HOME/.kube/config
 
-      - name: Deploy to cluster
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG_B64 }}
-        run: |
-          kubectl apply -f k8s/frontend-service.yaml
-          
+    - name: Deploy Frontend Service
+      run: kubectl apply -f ./k8s/frontend-service.yaml
