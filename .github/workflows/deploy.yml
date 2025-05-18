@@ -20,4 +20,4 @@ jobs:
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
         run: |
-          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/frontend-service.yaml
