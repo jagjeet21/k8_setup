@@ -8,6 +8,7 @@ spec:
     app: frontend
   ports:
     - protocol: TCP
-      port: 80          # external service port
-      targetPort: 3000  # container port in frontend pod
-  type: LoadBalancer  # exposes frontend outside cluster (e.g., for testing)
+      port: 80
+      targetPort: 3000
+      nodePort: 30080  # specify NodePort (optional, or let k8s assign one)
+  type: NodePort      # change from LoadBalancer to NodePort
