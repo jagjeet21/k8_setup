@@ -33,7 +33,7 @@ jobs:
         docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
 
     - name: Deploy Postgres
-      run: kubectl apply -f ./k8s/postgres.yaml
+      run: kubectl apply -f ./k8s/postgres.yaml --validate=false
 
     - name: Create DB credentials secret
       run: |
