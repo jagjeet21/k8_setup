@@ -1,5 +1,5 @@
 name: Deploy to K3s Cluster
-#testing
+
 on:
   push:
     branches:
@@ -32,18 +32,24 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest ./frontend
         docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
 
+    - name: Ensure employee-app namespace exists
+      run: |
+        kubectl get namespace employee-app || \
+        kubectl create namespace employee-app
+
     - name: Deploy Postgres
       run: kubectl apply -f ./k8s/postgres.yaml --validate=false
 
     - name: Create DB credentials secret
       run: |
-        kubectl delete secret db-credentials --ignore-not-found
+        kubectl delete secret db-credentials -n employee-app --ignore-not-found
         kubectl create secret generic db-credentials \
           --from-literal=POSTGRES_HOST=postgres-service \
           --from-literal=POSTGRES_USER=myuser \
           --from-literal=POSTGRES_PASSWORD=mypassword \
           --from-literal=POSTGRES_DB_NAME=employees_db \
-          --from-literal=POSTGRES_PORT=5432
+          --from-literal=POSTGRES_PORT=5432 \
+          -n employee-app
 
     - name: Deploy backend and frontend
       run: |
